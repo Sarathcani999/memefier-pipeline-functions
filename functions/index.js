@@ -37,16 +37,18 @@ exports.deletePost = functions.firestore
         
     });
 
-// User Delete 
-// delete
-// 1. userDetails
-// 2. posts
-// 3. replies
-// 4. reactions
-// 5. followers
-// 6. userId
-// 7. comments
-// 8. dp -- storage *imp*
+/*
+User Delete 
+delete
+1. userDetails
+2. posts
+3. replies
+4. reactions
+5. followers
+6. userId
+7. comments
+8. dp -- storage *imp*
+*/
 exports.deleteUser = functions.auth
     .user()
     .onDelete(user => {
@@ -157,20 +159,19 @@ exports.deleteUser = functions.auth
 exports.deleteComment = functions.firestore
     .document("comments/{id}")
     .onDelete((snap , context) => {
-        admin.firestore
-            .collection("replies")
-            .where("comment_id" , "==" , snap.id)
-            .get()
-            .then(querySnapshot => {
-                const promises = [];
-                querySnapshot.forEach( doc => {
-                    const p = doc.ref.delete();
-                    promises.push(p);
-                });
 
-                return Promise.all(promises)
-                    .catch(error => console.error(error.message));
-            }).catch(error => console.error(error.message));
+        return admin.firestore()
+        .collection("replies")
+        .where("comment_id" , "==" , snap.id)
+        .get()
+        .then(async querySnapshot => {
+            await querySnapshot.forEach( doc => {
+                doc.ref.delete();
+            });
+
+            return null;
+        })
+        .catch(error => console.error(error.message));
     });
 
 
