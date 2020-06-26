@@ -154,7 +154,24 @@ exports.deleteUser = functions.auth
     });
 
 // Comment Delete -- delete only replies , and associated reactions to the comment (future installations)
+exports.deleteComment = functions.firestore
+    .document("comments/{id}")
+    .onDelete((snap , context) => {
+        admin.firestore
+            .collection("replies")
+            .where("comment_id" , "==" , snap.id)
+            .get()
+            .then(querySnapshot => {
+                const promises = [];
+                querySnapshot.forEach( doc => {
+                    const p = doc.ref.delete();
+                    promises.push(p);
+                });
 
+                return Promise.all(promises)
+                    .catch(error => console.error(error.message));
+            }).catch(error => console.error(error.message));
+    });
 
 
 // Reactions - To be completed (LOGIC not framed)
@@ -164,7 +181,7 @@ exports.deleteUser = functions.auth
 exports.createFollower = functions.firestore
     .document('followers/{id}')
     .onCreate((snap, context) => {
-        console.log(snap.data());
+        // console.log(snap.data());
 
         const followed_by = snap.data().followed_by;
         const following = snap.data().following;
@@ -187,7 +204,7 @@ exports.createFollower = functions.firestore
 exports.deleteFollower = functions.firestore
     .document('followers/{id}')
     .onDelete((snap, context) => {
-        console.log(snap.data());
+        // console.log(snap.data());
 
         const followed_by = snap.data().followed_by;
         const following = snap.data().following;
