@@ -158,11 +158,22 @@ exports.deleteUser = functions.auth
     });
 
 // Comment Delete -- delete only replies , and associated reactions to the comment (future installations)
+exports.createComment = functions.firestore
+    .document("comments/{id}")
+    .onCreate((snap , context) => {
+
+        var doc_id = "posts/" + snap.data().post_id
+        return admin.firestore()
+            .doc(doc_id)
+            .update({
+                commentCount : increment
+            })
+    });
 exports.deleteComment = functions.firestore
     .document("comments/{id}")
     .onDelete((snap, context) => {
 
-        return admin.firestore()
+        var p1 = admin.firestore()
             .collection("replies")
             .where("comment_id", "==", snap.id)
             .get()
@@ -174,6 +185,17 @@ exports.deleteComment = functions.firestore
                 return null;
             })
             .catch(error => console.error(error.message));
+
+        var doc_id = "posts/" + snap.data().post_id
+
+        var p2 = admin.firestore()
+            .doc(doc_id)
+            .update({
+                commentCount : decrement
+            })
+
+        return Promise.all([p1 , p2])
+            .catch(error => console.error(error.message))
     });
 
 
