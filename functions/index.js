@@ -4,34 +4,8 @@ const algoliasearch = require('algoliasearch');
 
 admin.initializeApp();
 
-const APP_ID = functions.config().algolia.app;
-const ADMIN_KEY = functions.config().algolia.key;
-
-const client = algoliasearch(APP_ID , ADMIN_KEY);
-const users = client.initIndex('users');
-
 const increment = admin.firestore.FieldValue.increment(1);
 const decrement = admin.firestore.FieldValue.increment(-1);
-
-// Algolia
-exports.createUserDetails = functions.firestore
-    .document("userDetails/{doc}")
-    .onCreate((snap , context) => {
-        // snap.data() -- upload to algolia
-
-        const data = snap.data();
-        const objectId = snap.id;
-
-        return users.addObject({
-            ...data , objectId
-        });
-    });
-
-exports.deleteUserDetails = functions.firestore
-    .document("userDetails/{document}")
-    .onDelete((snap) => {
-        return users.deleteObject(snap.id);
-    })
 
 // Post cloud functions
 // delete meme -- storage *imp*
