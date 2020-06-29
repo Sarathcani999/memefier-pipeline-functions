@@ -11,12 +11,12 @@ const decrement = admin.firestore.FieldValue.increment(-1);
 // delete meme -- storage *imp*
 exports.deletePost = functions.firestore
     .document('posts/{id}')
-    .onDelete((snap , context) => {
+    .onDelete((snap, context) => {
         const p1 = admin.firestore().collection("comments")
-            .where("post_id" , "==" , snap.id)
+            .where("post_id", "==", snap.id)
             .get()
             .then(async querySnapshot => {
-                await querySnapshot.forEach( doc => {
+                await querySnapshot.forEach(doc => {
                     doc.ref.delete();
                 });
 
@@ -24,19 +24,19 @@ exports.deletePost = functions.firestore
             });
 
         const p2 = admin.firestore().collection("reactions")
-        .where("post_id" , "==" , snap.id)
-        .get()
-        .then(async querySnapshot => {
-            await querySnapshot.forEach( doc => {
-                doc.ref.delete();
+            .where("post_id", "==", snap.id)
+            .get()
+            .then(async querySnapshot => {
+                await querySnapshot.forEach(doc => {
+                    doc.ref.delete();
+                });
+
+                return null
             });
 
-            return null
-        });
-
-        return Promise.all([p1 , p2])
+        return Promise.all([p1, p2])
             .catch(error => console.error(error.message));
-        
+
     });
 
 /*
@@ -63,10 +63,10 @@ exports.deleteUser = functions.auth
 
         const p2 = admin.firestore()
             .collection("posts")
-            .where("created_by" , "==" , user.uid)
+            .where("created_by", "==", user.uid)
             .get()
             .then(async querySnapshot => {
-                await querySnapshot.forEach( doc => {
+                await querySnapshot.forEach(doc => {
                     doc.ref.delete();
                 });
 
@@ -76,10 +76,10 @@ exports.deleteUser = functions.auth
 
         const p3 = admin.firestore()
             .collection("replies")
-            .where("created_by" , "==" , user.uid)
+            .where("created_by", "==", user.uid)
             .get()
             .then(async querySnapshot => {
-                await querySnapshot.forEach( doc => {
+                await querySnapshot.forEach(doc => {
                     doc.ref.delete();
                 });
 
@@ -89,10 +89,10 @@ exports.deleteUser = functions.auth
 
         const p4 = admin.firestore()
             .collection("reactions")
-            .where("user_uid" , "==" , user.uid)
+            .where("user_uid", "==", user.uid)
             .get()
             .then(async querySnapshot => {
-                await querySnapshot.forEach( doc => {
+                await querySnapshot.forEach(doc => {
                     doc.ref.delete();
                 });
 
@@ -102,23 +102,23 @@ exports.deleteUser = functions.auth
 
         const p5 = admin.firestore()
             .collection("followers")
-            .where("followed_by" , "==" , user.uid)
+            .where("followed_by", "==", user.uid)
             .get()
             .then(async querySnapshot => {
-                await querySnapshot.forEach( doc => {
+                await querySnapshot.forEach(doc => {
                     doc.ref.delete();
                 });
 
                 return null
             });
         promises.push(p5);
-  
+
         const p6 = admin.firestore()
             .collection("followers")
-            .where("following" , "==" , user.uid)
+            .where("following", "==", user.uid)
             .get()
             .then(async querySnapshot => {
-                await querySnapshot.forEach( doc => {
+                await querySnapshot.forEach(doc => {
                     doc.ref.delete();
                 });
 
@@ -128,10 +128,10 @@ exports.deleteUser = functions.auth
 
         const p7 = admin.firestore()
             .collection("userId")
-            .where("uid" , "==" , user.uid)
+            .where("uid", "==", user.uid)
             .get()
             .then(async querySnapshot => {
-                await querySnapshot.forEach( doc => {
+                await querySnapshot.forEach(doc => {
                     doc.ref.delete();
                 });
 
@@ -141,10 +141,10 @@ exports.deleteUser = functions.auth
 
         const p8 = admin.firestore()
             .collection("comments")
-            .where("created_by" , "==" , user.uid)
+            .where("created_by", "==", user.uid)
             .get()
             .then(async querySnapshot => {
-                await querySnapshot.forEach( doc => {
+                await querySnapshot.forEach(doc => {
                     doc.ref.delete();
                 });
 
@@ -160,25 +160,103 @@ exports.deleteUser = functions.auth
 // Comment Delete -- delete only replies , and associated reactions to the comment (future installations)
 exports.deleteComment = functions.firestore
     .document("comments/{id}")
-    .onDelete((snap , context) => {
+    .onDelete((snap, context) => {
 
         return admin.firestore()
-        .collection("replies")
-        .where("comment_id" , "==" , snap.id)
-        .get()
-        .then(async querySnapshot => {
-            await querySnapshot.forEach( doc => {
-                doc.ref.delete();
-            });
+            .collection("replies")
+            .where("comment_id", "==", snap.id)
+            .get()
+            .then(async querySnapshot => {
+                await querySnapshot.forEach(doc => {
+                    doc.ref.delete();
+                });
 
-            return null;
-        })
-        .catch(error => console.error(error.message));
+                return null;
+            })
+            .catch(error => console.error(error.message));
     });
 
 
 // Reactions - To be completed (LOGIC not framed)
 // increment and decrement like/dislike count in the posts colloection <"posts/{document}">
+exports.createReaction = functions.firestore
+    .document("reactions/{doc}")
+    .onCreate((snap, context) => {
+        /*
+        Algorithm :
+            if like then :
+                increment likeCount
+            if dislike then :
+                increment dislikeCount
+        */
+        if (snap.data().reaction == 0) {
+            return admin.firestore().collection("posts").doc(snap.data().post_id).update({
+                likeCount: increment
+            });
+        } else if (snap.data().reaction == 1) {
+            return admin.firestore().collection("posts").doc(snap.data().post_id).update({
+                dislikeCount: increment
+            });
+        } else {
+            return null
+        }
+    });
+
+exports.deleteReaction = functions.firestore
+    .document("reactions/{doc}")
+    .onDelete((snap, context) => {
+        /*
+        Algorithm :
+            if like then :
+                increment likeCount
+            if dislike then :
+                increment dislikeCount
+        */
+        if (snap.data().reaction == 0) {
+            return admin.firestore().collection("posts").doc(snap.data().post_id).update({
+                likeCount: decrement
+            });
+        } else if (snap.data().reaction == 1) {
+            return admin.firestore().collection("posts").doc(snap.data().post_id).update({
+                dislikeCount: decrement
+            });
+        } else {
+            return null
+        }
+    });
+
+exports.updateReaction = functions.firestore
+    .document("reactions/{doc}")
+    .onUpdate((snap, context) => {
+        /*
+        Algorithm :
+            if like -> dislike then :
+                decrement likeCount
+                increment dislikeCount
+            else if dislike -> like then :
+                decrement dislikeCount
+                increment likeCount
+            else :
+                return null
+        */
+
+        const newValue = change.after.data();
+        const oldValue = change.before.data();
+        
+        if (oldValue == 0 && newValue == 1) {
+            return admin.firestore().collection("posts").doc(snap.data().post_id).update({
+                likeCount: decrement ,
+                dislikeCount : increment
+            });
+        } else if (oldValue == 1 && newValue == 0) {
+            return admin.firestore().collection("posts").doc(snap.data().post_id).update({
+                dislikeCount: decrement ,
+                likeCount : increment
+            });
+        } else {
+            return null
+        }
+    });
 
 // Followers cloud functions
 exports.createFollower = functions.firestore
@@ -191,12 +269,12 @@ exports.createFollower = functions.firestore
         const promises = [];
 
         const p1 = admin.firestore().collection('userDetails').doc(followed_by).update({
-            following : increment
+            following: increment
         });
         promises.push(p1);
 
         const p2 = admin.firestore().collection('userDetails').doc(following).update({
-            followers : increment
+            followers: increment
         });
         promises.push(p2);
 
@@ -215,12 +293,12 @@ exports.deleteFollower = functions.firestore
         const promises = [];
 
         const p1 = admin.firestore().collection('userDetails').doc(followed_by).update({
-            following : decrement
+            following: decrement
         });
         promises.push(p1);
 
         const p2 = admin.firestore().collection('userDetails').doc(following).update({
-            followers : decrement
+            followers: decrement
         });
         promises.push(p2);
 
