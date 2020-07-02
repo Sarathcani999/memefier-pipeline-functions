@@ -211,11 +211,11 @@ exports.createReaction = functions.firestore
             if dislike then :
                 increment dislikeCount
         */
-        if (snap.data().reaction == 0) {
+        if (snap.data().reaction === 0) {
             return admin.firestore().collection("posts").doc(snap.data().post_id).update({
                 likeCount: increment
             });
-        } else if (snap.data().reaction == 1) {
+        } else if (snap.data().reaction === 1) {
             return admin.firestore().collection("posts").doc(snap.data().post_id).update({
                 dislikeCount: increment
             });
@@ -234,11 +234,11 @@ exports.deleteReaction = functions.firestore
             if dislike then :
                 increment dislikeCount
         */
-        if (snap.data().reaction == 0) {
+        if (snap.data().reaction === 0) {
             return admin.firestore().collection("posts").doc(snap.data().post_id).update({
                 likeCount: decrement
             });
-        } else if (snap.data().reaction == 1) {
+        } else if (snap.data().reaction === 1) {
             return admin.firestore().collection("posts").doc(snap.data().post_id).update({
                 dislikeCount: decrement
             });
@@ -265,12 +265,12 @@ exports.updateReaction = functions.firestore
         const newValue = change.after.data();
         const oldValue = change.before.data();
         
-        if (oldValue == 0 && newValue == 1) {
+        if (oldValue === 0 && newValue === 1) {
             return admin.firestore().collection("posts").doc(snap.data().post_id).update({
                 likeCount: decrement ,
                 dislikeCount : increment
             });
-        } else if (oldValue == 1 && newValue == 0) {
+        } else if (oldValue === 1 && newValue === 0) {
             return admin.firestore().collection("posts").doc(snap.data().post_id).update({
                 dislikeCount: decrement ,
                 likeCount : increment
