@@ -249,7 +249,7 @@ exports.deleteReaction = functions.firestore
 
 exports.updateReaction = functions.firestore
     .document("reactions/{doc}")
-    .onUpdate((snap, context) => {
+    .onUpdate((change, context) => {
         /*
         Algorithm :
             if like -> dislike then :
@@ -262,16 +262,21 @@ exports.updateReaction = functions.firestore
                 return null
         */
 
-        const newValue = change.after.data();
-        const oldValue = change.before.data();
+        const newValue = change.after.data().reaction;
+        const oldValue = change.before.data().reaction;
+
+        var post_id = change.after.data().post_id
+
+        console.log("BEFORE CHANGE :" , oldValue);
+        console.log("AFTER  CHANGE :" , newValue);
         
         if (oldValue === 0 && newValue === 1) {
-            return admin.firestore().collection("posts").doc(snap.data().post_id).update({
+            return admin.firestore().collection("posts").doc(post_id).update({
                 likeCount: decrement ,
                 dislikeCount : increment
             });
         } else if (oldValue === 1 && newValue === 0) {
-            return admin.firestore().collection("posts").doc(snap.data().post_id).update({
+            return admin.firestore().collection("posts").doc(post_id).update({
                 dislikeCount: decrement ,
                 likeCount : increment
             });
