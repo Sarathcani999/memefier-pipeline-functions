@@ -333,7 +333,7 @@ exports.deleteFollower = functions.firestore
 
 // Community or groups cloud functions
 exports.onCreateGroup = functions.firestore
-    .doc("groups/{group}")
+    .document("groups/{group}")
     .onCreate((snap, context) => {
         var group_id = snap.params.id
         var user_uid = snap.data().admin
@@ -349,7 +349,7 @@ exports.onCreateGroup = functions.firestore
 
 // post deletion not added
 exports.onDeleteGroup = functions.firestore
-    .doc("groups/{group}")
+    .document("groups/{group}")
     .onDelete((snap, context) => {
         return admin.firestore()
             .collection("group_member")
@@ -366,7 +366,7 @@ exports.onDeleteGroup = functions.firestore
     })
 
 exports.onCreateGroupMember = functions.firestore
-    .doc("group_member/{member}")
+    .document("group_member/{member}")
     .onCreate((snap, context) => {
         var group_id = snap.data().group_id
 
@@ -376,7 +376,7 @@ exports.onCreateGroupMember = functions.firestore
     })
 
 exports.onCreateGroupMember = functions.firestore
-    .doc("group_member/{member}")
+    .document("group_member/{member}")
     .onDelete((snap, context) => {
         var group_id = snap.data().group_id
 
