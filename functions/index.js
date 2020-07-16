@@ -331,3 +331,6 @@ exports.deleteFollower = functions.firestore
 
         return Promise.all(promises)
     });
+
+// Community or groups cloud functions
+
