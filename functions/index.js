@@ -347,6 +347,7 @@ exports.onCreateGroup = functions.firestore
         })
     })
 
+// post deletion not added
 exports.onDeleteGroup = functions.firestore
     .doc("groups/{group}")
     .onDelete((snap, context) => {
