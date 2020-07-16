@@ -160,13 +160,13 @@ exports.deleteUser = functions.auth
 // Comment Delete -- delete only replies , and associated reactions to the comment (future installations)
 exports.createComment = functions.firestore
     .document("comments/{id}")
-    .onCreate((snap , context) => {
+    .onCreate((snap, context) => {
 
         var doc_id = "posts/" + snap.data().post_id
         return admin.firestore()
             .doc(doc_id)
             .update({
-                commentCount : increment
+                commentCount: increment
             })
     });
 exports.deleteComment = functions.firestore
@@ -191,10 +191,10 @@ exports.deleteComment = functions.firestore
         var p2 = admin.firestore()
             .doc(doc_id)
             .update({
-                commentCount : decrement
+                commentCount: decrement
             })
 
-        return Promise.all([p1 , p2])
+        return Promise.all([p1, p2])
             .catch(error => console.error(error.message))
     });
 
@@ -267,18 +267,18 @@ exports.updateReaction = functions.firestore
 
         var post_id = change.after.data().post_id
 
-        console.log("BEFORE CHANGE :" , oldValue);
-        console.log("AFTER  CHANGE :" , newValue);
-        
+        console.log("BEFORE CHANGE :", oldValue);
+        console.log("AFTER  CHANGE :", newValue);
+
         if (oldValue === 0 && newValue === 1) {
             return admin.firestore().collection("posts").doc(post_id).update({
-                likeCount: decrement ,
-                dislikeCount : increment
+                likeCount: decrement,
+                dislikeCount: increment
             });
         } else if (oldValue === 1 && newValue === 0) {
             return admin.firestore().collection("posts").doc(post_id).update({
-                dislikeCount: decrement ,
-                likeCount : increment
+                dislikeCount: decrement,
+                likeCount: increment
             });
         } else {
             return null
@@ -335,7 +335,7 @@ exports.deleteFollower = functions.firestore
 // Community or groups cloud functions
 exports.onCreateGroup = functions.firestore
     .doc("groups/{group}")
-    .onCreate((snap , context) => {
+    .onCreate((snap, context) => {
         var group_id = snap.params.id
         var user_uid = snap.data().admin
 
@@ -344,16 +344,26 @@ exports.onCreateGroup = functions.firestore
         return admin.firestore().collection("group_member").doc(doc_name).set({
             group_id,
             user_uid,
-            approved : true
+            approved: true
         })
     })
 
 exports.onCreateGroupMember = functions.firestore
     .doc("group_member/{member}")
-    .onCreate((snap , context) => {
+    .onCreate((snap, context) => {
         var group_id = snap.data().group_id
 
         return admin.firestore().collection('groups').doc(group_id).update({
-            members : increment
+            members: increment
+        });
+    })
+
+exports.onCreateGroupMember = functions.firestore
+    .doc("group_member/{member}")
+    .onDelete((snap, context) => {
+        var group_id = snap.data().group_id
+
+        return admin.firestore().collection('groups').doc(group_id).update({
+            members: decrement
         });
     })
