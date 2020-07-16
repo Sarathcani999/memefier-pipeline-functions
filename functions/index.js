@@ -333,4 +333,17 @@ exports.deleteFollower = functions.firestore
     });
 
 // Community or groups cloud functions
+exports.onCreateGroup = functions.firestore
+    .doc("groups/{group}")
+    .onCreate((snap , context) => {
+        var group_id = snap.params.id
+        var user_uid = snap.data().admin
 
+        var doc_name = group_id + '_' + user_uid
+        // admin gets in to group_member collection
+        return admin.firestore().collection("group_member").doc(doc_name).set({
+            group_id,
+            user_uid,
+            approved : true
+        })
+    })
