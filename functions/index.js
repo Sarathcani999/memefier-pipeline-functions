@@ -1,6 +1,5 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const algoliasearch = require('algoliasearch');
 
 admin.initializeApp();
 
@@ -346,6 +345,23 @@ exports.onCreateGroup = functions.firestore
             user_uid,
             approved: true
         })
+    })
+
+exports.onDeleteGroup = functions.firestore
+    .doc("groups/{group}")
+    .onDelete((snap, context) => {
+        return admin.firestore()
+            .collection("group_member")
+            .where("group_id", "==", snap.id)
+            .get()
+            .then(async querySnapshot => {
+                await querySnapshot.forEach(doc => {
+                    doc.ref.delete();
+                });
+
+                return null;
+            })
+            .catch(error => console.error(error.message));
     })
 
 exports.onCreateGroupMember = functions.firestore
