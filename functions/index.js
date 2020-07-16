@@ -375,7 +375,7 @@ exports.onCreateGroupMember = functions.firestore
         });
     })
 
-exports.onCreateGroupMember = functions.firestore
+exports.onDeleteGroupMember = functions.firestore
     .document("group_member/{member}")
     .onDelete((snap, context) => {
         var group_id = snap.data().group_id
