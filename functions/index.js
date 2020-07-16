@@ -347,3 +347,13 @@ exports.onCreateGroup = functions.firestore
             approved : true
         })
     })
+
+exports.onCreateGroupMember = functions.firestore
+    .doc("group_member/{member}")
+    .onCreate((snap , context) => {
+        var group_id = snap.data().group_id
+
+        return admin.firestore().collection('groups').doc(group_id).update({
+            members : increment
+        });
+    })
